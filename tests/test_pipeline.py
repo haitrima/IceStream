@@ -37,6 +37,7 @@ class TestPipeline(unittest.TestCase):
 
         self.assertEqual(result["status"], "PAUSED")
         self.assertFalse(result["downstream_processed"])
+        self.assertAlmostEqual(result["metrics"]["error_rate"], 0.02)
 
     def test_pipeline_pauses_above_threshold(self):
         transactions = [
@@ -50,6 +51,8 @@ class TestPipeline(unittest.TestCase):
         self.assertEqual(result["status"], "PAUSED")
         self.assertFalse(result["downstream_processed"])
         self.assertIn("2.00%", result["reason"])
+        
+
     def test_pipeline_uses_custom_threshold(self):
         transactions = [
             make_transaction(i) for i in range(1, 101)
