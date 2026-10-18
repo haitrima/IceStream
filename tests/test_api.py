@@ -32,6 +32,8 @@ class TestAPI(unittest.TestCase):
         self.assertIn("valid_transactions", data)
         self.assertIn("quality_errors", data)
         self.assertIn("pipeline_status", data)
+        self.assertIn("error_rate_percent", data)
+        self.assertIn("circuit_breaker_triggered", data)
 
 if __name__ == "__main__":
     unittest.main()
