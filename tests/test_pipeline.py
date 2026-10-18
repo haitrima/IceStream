@@ -50,6 +50,18 @@ class TestPipeline(unittest.TestCase):
         self.assertEqual(result["status"], "PAUSED")
         self.assertFalse(result["downstream_processed"])
 
+    def test_pipeline_uses_custom_threshold(self):
+        transactions = [
+            make_transaction(i) for i in range(1, 101)
+        ]
 
-if __name__ == "__main__":
-    unittest.main()
+        for i in range(5):
+            transactions[i]["tax_amount"] = None
+
+        result = run_pipeline(transactions, threshold=0.10)
+
+        self.assertEqual(result["status"], "RUNNING")
+        self.assertFalse(result["metrics"]["circuit_breaker_triggered"])
+    
+        if __name__ == "__main__":
+           unittest.main()
