@@ -88,6 +88,14 @@ class TestDataQuality(unittest.TestCase):
 
         self.assertEqual(result["error_rate"], 0.03)
         self.assertTrue(result["circuit_breaker_triggered"])
+    
+    def test_missing_required_field_is_detected(self):
+        transaction = make_transaction()
+        del transaction["product"]
+
+        errors = validate_transaction(transaction)
+
+        self.assertIn("Missing required field: product", errors)
 
 if __name__ == "__main__":
     unittest.main()
