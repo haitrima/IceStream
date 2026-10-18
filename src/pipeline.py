@@ -8,6 +8,14 @@ def run_pipeline(transactions, threshold=0.02):
         transactions,
         threshold=threshold,
     )
+    
+    if not transactions:
+        return {
+            "status": "PAUSED",
+            "reason": "No transactions available to process.",
+            "downstream_processed": False,
+            "metrics": result,
+        }
 
     if result["circuit_breaker_triggered"]:
         return {

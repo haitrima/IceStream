@@ -65,6 +65,14 @@ class TestPipeline(unittest.TestCase):
 
         self.assertEqual(result["status"], "RUNNING")
         self.assertFalse(result["metrics"]["circuit_breaker_triggered"])
-    
+
+    def test_pipeline_handles_empty_transactions(self):
+        result = run_pipeline([])
+
+        self.assertEqual(result["status"], "PAUSED")
+        self.assertFalse(result["downstream_processed"])
+        self.assertEqual(result["metrics"]["total"], 0)
+        self.assertIn("No transactions", result["reason"])
+
         if __name__ == "__main__":
            unittest.main()
