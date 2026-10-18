@@ -1,0 +1,327 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f3f6fb;
+  color: #182438;
+}
+
+button {
+  font: inherit;
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 245px;
+  flex-shrink: 0;
+  background: #111c30;
+  color: #fff;
+  padding: 28px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar h2 {
+  margin: 0;
+  font-size: 25px;
+}
+
+.subtitle {
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: #9aa9c1;
+  margin: 8px 0 38px;
+}
+
+nav {
+  display: grid;
+  gap: 9px;
+}
+
+.nav-item {
+  text-align: left;
+  border: 0;
+  border-radius: 8px;
+  padding: 13px 12px;
+  background: transparent;
+  color: #bdc8db;
+  cursor: pointer;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: #fff;
+  background: #263b5d;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 30px;
+  color: #bdc8db;
+  font-size: 12px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #20bd8b;
+  margin-right: 7px;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 32px;
+}
+
+.topbar,
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.eyebrow {
+  color: #5978b4;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
+h1 {
+  margin: 8px 0;
+  font-size: 30px;
+}
+
+.muted {
+  color: #718096;
+  font-size: 13px;
+}
+
+.system-status {
+  background: #fff;
+  padding: 10px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 28px 0;
+}
+
+.metric-card,
+.panel {
+  background: #fff;
+  border: 1px solid #e4eaf2;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 3px 12px #172b4d08;
+}
+
+.metric-card > p {
+  color: #718096;
+  font-size: 13px;
+  margin: 0;
+}
+
+.metric-card h2 {
+  font-size: 24px;
+  margin: 18px 0 10px;
+}
+
+.metric-card:first-child h2 {
+  font-size: 18px;
+}
+
+.metric-note {
+  font-size: 11px;
+  color: #8491a5;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.panel h2 {
+  font-size: 17px;
+  margin: 0 0 7px;
+}
+
+.panel-heading {
+  margin-bottom: 24px;
+}
+
+.tag {
+  background: #edf2fa;
+  color: #49638e;
+  border-radius: 6px;
+  padding: 6px 9px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.tag.warning {
+  background: #fff3dc;
+  color: #9b680d;
+}
+
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pipeline-node {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  padding: 13px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.pipeline-node span {
+  color: #5c7ec0;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.pipeline-node strong {
+  font-size: 12px;
+}
+
+.pipeline-node small {
+  color: #7b879a;
+  font-size: 10px;
+}
+
+.pipeline-arrow {
+  color: #6682b3;
+}
+
+.architecture-note {
+  color: #8a95a6;
+  font-size: 11px;
+  margin-top: 18px;
+}
+
+.rule-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid #edf0f5;
+  padding: 17px 0;
+}
+
+.rule-row strong {
+  font-size: 12px;
+}
+
+.rule-row p {
+  color: #7b879a;
+  font-size: 11px;
+  margin: 6px 0 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 25px 10px;
+}
+
+.empty-icon {
+  color: #6682b3;
+  font-size: 35px;
+}
+
+.empty-state h3 {
+  font-size: 15px;
+}
+
+.empty-state p {
+  color: #7b879a;
+  font-size: 12px;
+  line-height: 1.7;
+  max-width: 440px;
+  margin: auto;
+}
+
+footer {
+  text-align: center;
+  color: #8a95a6;
+  font-size: 11px;
+  padding: 25px 0 5px;
+}
+
+@media (max-width: 1100px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .main {
+    padding: 18px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pipeline {
+    flex-wrap: wrap;
+  }
+
+  .pipeline-node {
+    min-width: 110px;
+  }
+
+  .pipeline-arrow {
+    display: none;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rule-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
