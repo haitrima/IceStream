@@ -35,6 +35,14 @@ class TestTransactionGenerator(unittest.TestCase):
 
         self.assertEqual(transaction["order_id"], 123)
 
+    def test_generated_amounts_are_non_negative(self):
+        transactions = generate_transactions(100)
+
+        for transaction in transactions:
+            self.assertGreater(transaction["sales_amount"], 0)
+
+            if transaction["tax_amount"] is not None:
+                self.assertGreater(transaction["tax_amount"], 0)
 
 if __name__ == "__main__":
     unittest.main()
