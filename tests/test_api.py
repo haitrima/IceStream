@@ -35,5 +35,30 @@ class TestAPI(unittest.TestCase):
         self.assertIn("error_rate_percent", data)
         self.assertIn("circuit_breaker_triggered", data)
 
+    @patch("src.api.QUARANTINE_FILE")
+    def test_quarantine_endpoint_returns_records(self, mock_file):
+        mock_file.exists.return_value = False
+
+        response = client.get("/api/quarantine")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {"total_records": 0, "records": []},
+        )
+    
+    @patch("src.api.QUARANTINE_FILE")
+    def test_quarantine_endpoint_returns_records(self, mock_file):
+        mock_file.exists.return_value = True
+        mock_file.open.return_value.__enter__.return_value.read.return_value = "[]"
+
+        with patch("builtins.open", unittest.mock.mock_open(read_data="[]")):
+            response = client.get("/api/quarantine")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("total_records", data)
+        self.assertIn("records", data)
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,7 @@
+import json
 import unittest
+import tempfile
+from pathlib import Path
 
 from src.data_quality import (
     validate_transaction,
@@ -28,6 +31,27 @@ class TestDataQuality(unittest.TestCase):
 
         errors = validate_transaction(transaction)
         self.assertIn("Tax amount is null", errors)
+
+    def test_sales_amount_must_be_numeric(self):
+        transaction = make_transaction()
+        transaction["sales_amount"] = "invalid"
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Sales amount must be numeric", errors)
+
+    def test_negative_sales_amount_is_rejected(self):
+        transaction = make_transaction()
+        transaction["sales_amount"] = -100
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Sales amount cannot be negative", errors)
+
+    def test_negative_tax_amount_is_rejected(self):
+        transaction = make_transaction()
+        transaction["tax_amount"] = -10
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Tax amount cannot be negative", errors)
 
     def test_unexpected_field_is_detected(self):
         transaction = make_transaction()
@@ -96,6 +120,31 @@ class TestDataQuality(unittest.TestCase):
         errors = validate_transaction(transaction)
 
         self.assertIn("Missing required field: product", errors)
+
+    def test_reprocessing_same_invalid_record(self):
+        import src.data_quality as data_quality
+
+        invalid_transaction = {
+            **make_transaction(999),
+            "tax_amount": None,
+        }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temporary_file = Path(temp_dir) / "quarantine.json"
+            original_file = data_quality.QUARANTINE_FILE
+
+            try:
+                data_quality.QUARANTINE_FILE = temporary_file
+
+                process_transactions([invalid_transaction])
+                process_transactions([invalid_transaction])
+
+                with temporary_file.open("r", encoding="utf-8") as file:
+                    saved_records = json.load(file)
+
+                self.assertEqual(len(saved_records), 1)
+            finally:
+                data_quality.QUARANTINE_FILE = original_file
 
 if __name__ == "__main__":
     unittest.main()

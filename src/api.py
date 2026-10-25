@@ -4,12 +4,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.transaction_generator import generate_transactions
 from src.pipeline import run_pipeline
 
+import json
+from pathlib import Path
+
 app = FastAPI(title="IceStream Observability API")
 
-# Allow the local React development server to access this API.
+QUARANTINE_FILE = (
+    Path(__file__).resolve().parent.parent
+    / "data"
+    / "quarantine.json"
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+    ],
     allow_credentials=False,
     allow_methods=["GET"],
     allow_headers=["*"],
@@ -42,4 +53,27 @@ def get_metrics():
         "downstream_processed": pipeline_result["downstream_processed"],
         "pipeline_reason": pipeline_result["reason"],
         "threshold_percent": 2,
+    }
+
+@app.get("/api/quarantine")
+def get_quarantine_records():
+    if not QUARANTINE_FILE.exists():
+        return {
+            "total_records": 0,
+            "records": [],
+        }
+
+    try:
+        with QUARANTINE_FILE.open("r", encoding="utf-8") as file:
+            records = json.load(file)
+    except (json.JSONDecodeError, OSError):
+        return {
+            "total_records": 0,
+            "records": [],
+            "error": "Unable to read quarantine records.",
+        }
+
+    return {
+        "total_records": len(records),
+        "records": records,
     }

@@ -36,3 +36,10 @@ frontend/dist/
 .env
 .env.*
 !.env.example
+Generated quarantine data
+
+data/quarantine.json
+
+Pytest cache
+
+.pytest_cache/
