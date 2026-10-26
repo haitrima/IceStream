@@ -146,5 +146,28 @@ class TestDataQuality(unittest.TestCase):
             finally:
                 data_quality.QUARANTINE_FILE = original_file
 
+    def test_corrupt_quarantine_file_does_not_get_overwritten(self):
+        import src.data_quality as data_quality
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temporary_file = Path(temp_dir) / "quarantine.json"
+            temporary_file.write_text("{invalid json", encoding="utf-8")
+            original_file = data_quality.QUARANTINE_FILE
+
+            try:
+                data_quality.QUARANTINE_FILE = temporary_file
+
+                with self.assertRaises(json.JSONDecodeError):
+                    data_quality.save_quarantined_records([
+                        {"record": make_transaction(1000), "errors": ["Tax amount is null"]}
+                    ])
+
+                self.assertEqual(
+                    temporary_file.read_text(encoding="utf-8"),
+                    "{invalid json",
+                )
+            finally:
+                data_quality.QUARANTINE_FILE = original_file
+
 if __name__ == "__main__":
     unittest.main()

@@ -7,7 +7,7 @@ QUARANTINE_FILE = (
     / "quarantine.json"
 )
 def save_quarantined_records(records):
-    """Save quarantined records without duplicating identical entries."""
+    """Save quarantined records without duplicates or silent data loss."""
     QUARANTINE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     existing_records = []
@@ -15,6 +15,12 @@ def save_quarantined_records(records):
     if QUARANTINE_FILE.exists():
         with QUARANTINE_FILE.open("r", encoding="utf-8") as file:
             existing_records = json.load(file)
+
+        if not isinstance(existing_records, list):
+            raise ValueError(
+                "Quarantine file must contain a JSON list. "
+                "Existing file was not overwritten."
+            )
 
     existing_keys = {
         json.dumps(item, sort_keys=True, default=str)
@@ -30,8 +36,6 @@ def save_quarantined_records(records):
 
     with QUARANTINE_FILE.open("w", encoding="utf-8") as file:
         json.dump(existing_records, file, indent=4, default=str)
-
-
 
 REQUIRED_FIELDS = {
     "order_id",
