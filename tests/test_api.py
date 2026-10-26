@@ -48,7 +48,7 @@ class TestAPI(unittest.TestCase):
         )
     
     @patch("src.api.QUARANTINE_FILE")
-    def test_quarantine_endpoint_returns_records(self, mock_file):
+    def test_quarantine_endpoint_reads_existing_records(self, mock_file):
         mock_file.exists.return_value = True
         mock_file.open.return_value.__enter__.return_value.read.return_value = "[]"
 
