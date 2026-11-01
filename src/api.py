@@ -15,6 +15,19 @@ QUARANTINE_FILE = (
     / "quarantine.json"
 )
 
+def get_quarantine_count():
+    if not QUARANTINE_FILE.exists():
+        return 0
+
+    try:
+        with QUARANTINE_FILE.open("r", encoding="utf-8") as file:
+            records = json.load(file)
+
+        return len(records) if isinstance(records, list) else 0
+
+    except (json.JSONDecodeError, OSError):
+        return 0
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -47,7 +60,7 @@ def get_metrics():
         "valid_transactions": result["valid_count"],
         "quality_errors": result["error_count"],
         "error_rate_percent": round(result["error_rate"] * 100, 2),
-        "quarantined_records": result["error_count"],
+        "quarantined_records": get_quarantine_count(),
         "circuit_breaker_triggered": result["circuit_breaker_triggered"],
         "pipeline_status": pipeline_result["status"],
         "downstream_processed": pipeline_result["downstream_processed"],
