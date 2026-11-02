@@ -49,6 +49,14 @@ class TestTransactionGenerator(unittest.TestCase):
         transaction = generate_transaction(1)
 
         self.assertIsNone(transaction["tax_amount"])
+    @patch("src.transaction_generator.random.random", return_value=0.06)
+    def test_unexpected_field_error_is_injected(self, mock_random):
+        transaction = generate_transaction(1)
 
+        self.assertEqual(
+            transaction["unexpected_field"],
+            "SCHEMA_CHANGE",
+        )
+    
     if __name__ == "__main__":
         unittest.main()
