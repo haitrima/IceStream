@@ -1,5 +1,5 @@
 import unittest
-
+from unittest.mock import patch
 from src.transaction_generator import (
     generate_transaction,
     generate_transactions,
@@ -44,5 +44,11 @@ class TestTransactionGenerator(unittest.TestCase):
             if transaction["tax_amount"] is not None:
                 self.assertGreater(transaction["tax_amount"], 0)
 
-if __name__ == "__main__":
-    unittest.main()
+    @patch("src.transaction_generator.random.random", return_value=0.01)
+    def test_null_tax_error_is_injected(self, mock_random):
+        transaction = generate_transaction(1)
+
+        self.assertIsNone(transaction["tax_amount"])
+
+    if __name__ == "__main__":
+        unittest.main()
