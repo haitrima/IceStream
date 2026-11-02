@@ -169,5 +169,13 @@ class TestDataQuality(unittest.TestCase):
             finally:
                 data_quality.QUARANTINE_FILE = original_file
 
+    def test_negative_threshold_is_rejected(self):
+        with self.assertRaises(ValueError):
+            process_transactions([], threshold=-0.01)
+
+    def test_threshold_above_one_is_rejected(self):
+        with self.assertRaises(ValueError):
+            process_transactions([], threshold=1.01)
+    
 if __name__ == "__main__":
     unittest.main()

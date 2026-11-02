@@ -95,6 +95,10 @@ def validate_transaction(transaction):
 
 def process_transactions(transactions, threshold=0.02):
     """Validate transactions and quarantine invalid records."""
+    if not isinstance(threshold, (int, float)) or isinstance(threshold, bool):
+        raise ValueError("Threshold must be a number between 0 and 1.")
+    if not 0 <= threshold <= 1:
+        raise ValueError("Threshold must be between 0 and 1.")
     valid_records = []
     quarantined_records = []
 
