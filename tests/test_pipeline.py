@@ -74,5 +74,9 @@ class TestPipeline(unittest.TestCase):
         self.assertEqual(result["metrics"]["total"], 0)
         self.assertIn("No transactions", result["reason"])
 
-        if __name__ == "__main__":
-           unittest.main()
+    def test_pipeline_rejects_invalid_threshold(self):
+        with self.assertRaises(ValueError):
+            run_pipeline([], threshold=-0.01)    
+
+    if __name__ == "__main__":
+        unittest.main()
