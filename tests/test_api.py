@@ -73,16 +73,33 @@ class TestAPI(unittest.TestCase):
     @patch("src.api.QUARANTINE_FILE")
     def test_quarantine_endpoint_reads_existing_records(self, mock_file):
         mock_file.exists.return_value = True
-        mock_file.open.return_value.__enter__.return_value.read.return_value = "[]"
 
-        with patch("builtins.open", unittest.mock.mock_open(read_data="[]")):
+        saved_records = [
+            {
+                "order_id": 101,
+                "product": "Laptop",
+                "sales_amount": 1200.00,
+                "tax_amount": None,
+                "timestamp": "2026-10-16T10:00:00+00:00",
+            }
+        ]
+
+        mock_file.open.return_value.__enter__.return_value.read.return_value = (
+            __import__("json").dumps(saved_records)
+        )
+
+        with patch(
+            "builtins.open",
+            unittest.mock.mock_open(
+                read_data=__import__("json").dumps(saved_records)
+            ),
+        ):
             response = client.get("/api/quarantine")
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertIn("total_records", data)
-        self.assertIn("records", data)
-
+        self.assertEqual(data["total_records"], 1)
+        self.assertEqual(data["records"], saved_records)
 
 if __name__ == "__main__":
     unittest.main()
