@@ -30,18 +30,19 @@ IceStream is a data-quality monitoring project that simulates observability for 
 
 ```text
 IceStream/
-├── src/
-│   ├── api.py
-│   ├── data_quality.py
-│   ├── pipeline.py
-│   └── transaction_generator.py
-├── tests/
-├── data/
-│   └── quarantine.json
-├── frontend/
-├── README.md
-└── .gitignore
-```
+|-- src/
+|   |-- api.py
+|   |-- data_quality.py
+|   |-- pipeline.py
+|   `-- transaction_generator.py
+|-- tests/
+|-- data/
+|   `-- quarantine.json
+|-- frontend/
+|-- README.md
+`-- .gitignore
+
+
 
 ## Run Locally
 
