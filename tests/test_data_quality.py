@@ -39,6 +39,13 @@ class TestDataQuality(unittest.TestCase):
         errors = validate_transaction(transaction)
         self.assertIn("Sales amount must be numeric", errors)
 
+    def test_tax_amount_must_be_numeric(self):
+        transaction = make_transaction()
+        transaction["tax_amount"] = "invalid"
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Tax amount must be numeric", errors)   
+
     def test_negative_sales_amount_is_rejected(self):
         transaction = make_transaction()
         transaction["sales_amount"] = -100
