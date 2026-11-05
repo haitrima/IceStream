@@ -39,6 +39,20 @@ class TestDataQuality(unittest.TestCase):
         errors = validate_transaction(transaction)
         self.assertIn("Sales amount must be numeric", errors)
 
+    def test_nan_sales_amount_is_rejected(self):
+        transaction = make_transaction()
+        transaction["sales_amount"] = float("nan")
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Sales amount must be finite", errors)
+
+    def test_infinite_sales_amount_is_rejected(self):
+        transaction = make_transaction()
+        transaction["sales_amount"] = float("inf")
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Sales amount must be finite", errors)    
+
     def test_tax_amount_must_be_numeric(self):
         transaction = make_transaction()
         transaction["tax_amount"] = "invalid"
@@ -51,7 +65,21 @@ class TestDataQuality(unittest.TestCase):
         transaction["tax_amount"] = True
 
         errors = validate_transaction(transaction)
-        self.assertIn("Tax amount must be numeric", errors)    
+        self.assertIn("Tax amount must be numeric", errors)
+
+    def test_nan_tax_amount_is_rejected(self):
+        transaction = make_transaction()
+        transaction["tax_amount"] = float("nan")
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Tax amount must be finite", errors)
+
+    def test_infinite_tax_amount_is_rejected(self):
+        transaction = make_transaction()
+        transaction["tax_amount"] = float("inf")
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Tax amount must be finite", errors)        
 
     def test_negative_sales_amount_is_rejected(self):
         transaction = make_transaction()

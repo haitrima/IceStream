@@ -1,4 +1,5 @@
 import json
+import math
 from pathlib import Path
 
 QUARANTINE_FILE = (
@@ -68,6 +69,8 @@ def validate_transaction(transaction):
             or not isinstance(sales, (int, float))
         ):
             errors.append("Sales amount must be numeric")
+        elif not math.isfinite(sales):
+            errors.append("Sales amount must be finite")
         elif sales < 0:
             errors.append("Sales amount cannot be negative")
 
@@ -80,6 +83,8 @@ def validate_transaction(transaction):
             or not isinstance(tax, (int, float))
         ):
             errors.append("Tax amount must be numeric")
+        elif not math.isfinite(tax):
+            errors.append("Tax amount must be finite")
         elif tax < 0:
             errors.append("Tax amount cannot be negative")
 
