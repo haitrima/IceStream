@@ -236,6 +236,33 @@ class TestDataQuality(unittest.TestCase):
         with self.assertRaises(ValueError):
             process_transactions([], threshold=-0.01)
 
+    def test_non_list_quarantine_file_does_not_get_overwritten(self):
+        import src.data_quality as data_quality
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temporary_file = Path(temp_dir) / "quarantine.json"
+            original_content = "{}"
+            temporary_file.write_text(original_content, encoding="utf-8")
+            original_file = data_quality.QUARANTINE_FILE
+
+            try:
+                data_quality.QUARANTINE_FILE = temporary_file
+
+                with self.assertRaises(ValueError):
+                    data_quality.save_quarantined_records([
+                        {
+                            "record": make_transaction(1001),
+                            "errors": ["Tax amount is null"],
+                        }
+                    ])
+
+                self.assertEqual(
+                    temporary_file.read_text(encoding="utf-8"),
+                    original_content,
+                )
+            finally:
+                data_quality.QUARANTINE_FILE = original_file
+
     def test_threshold_above_one_is_rejected(self):
         with self.assertRaises(ValueError):
             process_transactions([], threshold=1.01)
