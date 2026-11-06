@@ -101,5 +101,20 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(data["total_records"], 1)
         self.assertEqual(data["records"], saved_records)
 
+    @patch("src.api.QUARANTINE_FILE")
+    def test_quarantine_endpoint_handles_non_list_json(self, mock_file):
+        mock_file.exists.return_value = True
+        mock_file.open.return_value.__enter__.return_value.read.return_value = (
+            "{}"
+        )
+
+        response = client.get("/api/quarantine")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {"total_records": 0, "records": []},
+        )
+
 if __name__ == "__main__":
     unittest.main()

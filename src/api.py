@@ -85,6 +85,11 @@ def get_quarantine_records():
             "records": [],
             "error": "Unable to read quarantine records.",
         }
+    if not isinstance(records, list):
+        return {
+            "total_records": 0,
+            "records": [],
+        }
 
     return {
         "total_records": len(records),
