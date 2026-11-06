@@ -1,5 +1,6 @@
 import json
 import math
+from datetime import datetime
 from pathlib import Path
 
 QUARANTINE_FILE = (
@@ -55,6 +56,18 @@ def validate_transaction(transaction):
     for field in REQUIRED_FIELDS:
         if field not in transaction:
             errors.append(f"Missing required field: {field}")
+
+    # Check that timestamp is a valid ISO-format string.
+    if "timestamp" in transaction:
+        timestamp = transaction["timestamp"]
+
+        if not isinstance(timestamp, str):
+            errors.append("Timestamp must be a valid ISO format")
+        else:
+            try:
+                datetime.fromisoformat(timestamp)
+            except ValueError:
+                errors.append("Timestamp must be a valid ISO format")
 
     # Check for missing tax amount.
     if "tax_amount" in transaction and transaction["tax_amount"] is None:

@@ -25,6 +25,27 @@ class TestDataQuality(unittest.TestCase):
         transaction = make_transaction()
         self.assertEqual(validate_transaction(transaction), [])
 
+    def test_invalid_timestamp_is_rejected(self):
+        transaction = make_transaction()
+        transaction["timestamp"] = "hello"
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Timestamp must be a valid ISO format", errors)
+
+    def test_empty_timestamp_is_rejected(self):
+        transaction = make_transaction()
+        transaction["timestamp"] = ""
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Timestamp must be a valid ISO format", errors)
+
+    def test_numeric_timestamp_is_rejected(self):
+        transaction = make_transaction()
+        transaction["timestamp"] = 12345
+
+        errors = validate_transaction(transaction)
+        self.assertIn("Timestamp must be a valid ISO format", errors)
+
     def test_null_tax_amount_is_detected(self):
         transaction = make_transaction()
         transaction["tax_amount"] = None
