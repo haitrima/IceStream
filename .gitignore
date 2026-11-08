@@ -40,6 +40,8 @@ Generated quarantine data
 
 data/quarantine.json
 
+data/error_history.json
+
 Pytest cache
 
 .pytest_cache/

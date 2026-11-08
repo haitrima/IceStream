@@ -137,5 +137,41 @@ class TestAPI(unittest.TestCase):
             "Unable to read quarantine records.",
         )
 
+    @patch("src.api.ERROR_HISTORY_FILE")
+    def test_error_history_endpoint_returns_empty_history(self, mock_file):
+        mock_file.exists.return_value = False
+
+        response = client.get("/api/error-history")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {"total_records": 0, "history": []},
+        )
+
+    @patch("src.api.ERROR_HISTORY_FILE")
+    def test_error_history_endpoint_returns_saved_records(self, mock_file):
+        import json
+        from unittest.mock import mock_open
+
+        saved_history = [
+            {
+                "timestamp": "2026-11-08T06:40:00+05:30",
+                "error_rate_percent": 7.0,
+            }
+        ]
+
+        mock_file.exists.return_value = True
+        mock_file.open.return_value = mock_open(
+            read_data=json.dumps(saved_history)
+        ).return_value
+
+        response = client.get("/api/error-history")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["total_records"], 1)
+        self.assertEqual(data["history"], saved_history) 
+
 if __name__ == "__main__":
     unittest.main()

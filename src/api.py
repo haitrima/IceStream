@@ -15,6 +15,35 @@ QUARANTINE_FILE = (
     / "quarantine.json"
 )
 
+ERROR_HISTORY_FILE = (
+    Path(__file__).resolve().parent.parent
+    / "data"
+    / "error_history.json"
+)
+
+def save_error_history(error_rate_percent):
+    ERROR_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    if ERROR_HISTORY_FILE.exists():
+        try:
+            with ERROR_HISTORY_FILE.open("r", encoding="utf-8") as file:
+                history = json.load(file)
+        except json.JSONDecodeError:
+            history = []
+    else:
+        history = []
+
+    if not isinstance(history, list):
+        history = []
+
+    history.append({
+        "timestamp": __import__("datetime").datetime.now().astimezone().isoformat(),
+        "error_rate_percent": error_rate_percent,
+    })
+
+    with ERROR_HISTORY_FILE.open("w", encoding="utf-8") as file:
+        json.dump(history, file, indent=4)
+
 def get_quarantine_count():
     if not QUARANTINE_FILE.exists():
         return 0
@@ -54,12 +83,15 @@ def get_metrics():
     transactions = generate_transactions(100)
     pipeline_result = run_pipeline(transactions)
     result = pipeline_result["metrics"]
+    error_rate_percent = round(result["error_rate"] * 100, 2)
+    save_error_history(error_rate_percent)
+
 
     return {
         "total_transactions": result["total"],
         "valid_transactions": result["valid_count"],
         "quality_errors": result["error_count"],
-        "error_rate_percent": round(result["error_rate"] * 100, 2),
+        "error_rate_percent": error_rate_percent,
         "quarantined_records": get_quarantine_count(),
         "circuit_breaker_triggered": result["circuit_breaker_triggered"],
         "pipeline_status": pipeline_result["status"],
@@ -94,4 +126,33 @@ def get_quarantine_records():
     return {
         "total_records": len(records),
         "records": records,
+    }
+
+@app.get("/api/error-history")
+def get_error_history():
+    if not ERROR_HISTORY_FILE.exists():
+        return {
+            "total_records": 0,
+            "history": [],
+        }
+
+    try:
+        with ERROR_HISTORY_FILE.open("r", encoding="utf-8") as file:
+            history = json.load(file)
+    except (json.JSONDecodeError, OSError):
+        return {
+            "total_records": 0,
+            "history": [],
+            "error": "Unable to read error history.",
+        }
+
+    if not isinstance(history, list):
+        return {
+            "total_records": 0,
+            "history": [],
+        }
+
+    return {
+        "total_records": len(history),
+        "history": history,
     }
