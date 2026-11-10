@@ -5,6 +5,8 @@ from src.transaction_generator import generate_transactions
 from src.pipeline import run_pipeline
 
 import json
+import os
+from datetime import datetime
 from pathlib import Path
 
 app = FastAPI(title="IceStream Observability API")
@@ -21,6 +23,8 @@ ERROR_HISTORY_FILE = (
     / "error_history.json"
 )
 
+TEMP_ERROR_HISTORY_FILE = ERROR_HISTORY_FILE.with_suffix(".tmp")
+
 def save_error_history(error_rate_percent):
     ERROR_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
 
@@ -28,21 +32,25 @@ def save_error_history(error_rate_percent):
         try:
             with ERROR_HISTORY_FILE.open("r", encoding="utf-8") as file:
                 history = json.load(file)
-        except json.JSONDecodeError:
-            history = []
+        except (json.JSONDecodeError, OSError):
+            return
     else:
         history = []
 
     if not isinstance(history, list):
-        history = []
+        return
 
     history.append({
-        "timestamp": __import__("datetime").datetime.now().astimezone().isoformat(),
+        "timestamp": datetime.now().astimezone().isoformat(),
         "error_rate_percent": error_rate_percent,
     })
 
-    with ERROR_HISTORY_FILE.open("w", encoding="utf-8") as file:
+    with TEMP_ERROR_HISTORY_FILE.open("w", encoding="utf-8") as file:
         json.dump(history, file, indent=4)
+        file.flush()
+        os.fsync(file.fileno())
+
+    os.replace(TEMP_ERROR_HISTORY_FILE, ERROR_HISTORY_FILE)
 
 def get_quarantine_count():
     if not QUARANTINE_FILE.exists():

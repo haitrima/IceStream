@@ -1,8 +1,9 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, mock_open
 from fastapi.testclient import TestClient
 
 from src.api import app
+from src.api import save_error_history
 
 client = TestClient(app)
 
@@ -171,7 +172,41 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["total_records"], 1)
-        self.assertEqual(data["history"], saved_history) 
+        self.assertEqual(data["history"], saved_history)
 
-if __name__ == "__main__":
-    unittest.main()
+    @patch("src.api.ERROR_HISTORY_FILE")
+    @patch("src.api.TEMP_ERROR_HISTORY_FILE")
+    def test_save_error_history_appends_record(
+        self, mock_temp_file, mock_history_file
+    ):
+        import json
+        from unittest.mock import mock_open
+
+        existing_history = [
+            {
+                "timestamp": "2026-11-08T06:40:00+05:30",
+                "error_rate_percent": 7.0,
+            }
+        ]
+
+        mock_history_file.exists.return_value = True
+        mock_history_file.open.return_value = mock_open(
+            read_data=json.dumps(existing_history)
+        ).return_value
+
+        mock_temp_file.open.return_value = mock_open().return_value
+
+        with patch("src.api.os.fsync"), patch("src.api.os.replace") as mock_replace:
+            save_error_history(8.0)
+
+        mock_replace.assert_called_once_with(
+            mock_temp_file, mock_history_file
+        )
+        mock_temp_file.open.assert_called_once_with(
+            "w", encoding="utf-8"
+        )
+        mock_history_file.parent.mkdir.assert_called_once_with(
+            parents=True, exist_ok=True
+        )
+    if __name__ == "__main__":
+      unittest.main()
