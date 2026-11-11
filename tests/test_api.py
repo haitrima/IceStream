@@ -208,5 +208,48 @@ class TestAPI(unittest.TestCase):
         mock_history_file.parent.mkdir.assert_called_once_with(
             parents=True, exist_ok=True
         )
-    if __name__ == "__main__":
-      unittest.main()
+
+   
+  
+    def test_save_error_history_preserves_existing_records(self):
+        import json
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+
+        existing_history = [
+            {
+                "timestamp": "2026-11-08T06:40:00+05:30",
+                "error_rate_percent": 7.0,
+            }
+        ]
+
+        with TemporaryDirectory() as directory:
+            history_file = Path(directory) / "error_history.json"
+            temp_file = history_file.with_suffix(".tmp")
+
+            history_file.write_text(
+                json.dumps(existing_history),
+                encoding="utf-8",
+            )
+
+            with (
+                patch("src.api.ERROR_HISTORY_FILE", history_file),
+                patch("src.api.TEMP_ERROR_HISTORY_FILE", temp_file),
+            ):
+                save_error_history(8.0)
+
+            saved_history = json.loads(
+                history_file.read_text(encoding="utf-8")
+            )
+
+            self.assertEqual(len(saved_history), 2)
+            self.assertEqual(saved_history[0], existing_history[0])
+            self.assertEqual(
+                saved_history[1]["error_rate_percent"], 8.0
+            )
+            self.assertIn("timestamp", saved_history[1])
+            self.assertFalse(temp_file.exists())
+
+if __name__ == "__main__":
+    unittest.main()
