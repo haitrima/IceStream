@@ -26,31 +26,45 @@ ERROR_HISTORY_FILE = (
 TEMP_ERROR_HISTORY_FILE = ERROR_HISTORY_FILE.with_suffix(".tmp")
 
 def save_error_history(error_rate_percent):
-    ERROR_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        ERROR_HISTORY_FILE.parent.mkdir(
+            parents=True, exist_ok=True
+        )
 
-    if ERROR_HISTORY_FILE.exists():
-        try:
-            with ERROR_HISTORY_FILE.open("r", encoding="utf-8") as file:
-                history = json.load(file)
-        except (json.JSONDecodeError, OSError):
+        if ERROR_HISTORY_FILE.exists():
+            try:
+                with ERROR_HISTORY_FILE.open(
+                    "r", encoding="utf-8"
+                ) as file:
+                    history = json.load(file)
+            except (json.JSONDecodeError, OSError):
+                return
+        else:
+            history = []
+
+        if not isinstance(history, list):
             return
-    else:
-        history = []
 
-    if not isinstance(history, list):
-        return
+        history.append({
+            "timestamp": datetime.now().astimezone().isoformat(),
+            "error_rate_percent": error_rate_percent,
+        })
 
-    history.append({
-        "timestamp": datetime.now().astimezone().isoformat(),
-        "error_rate_percent": error_rate_percent,
-    })
+        with TEMP_ERROR_HISTORY_FILE.open(
+            "w", encoding="utf-8"
+        ) as file:
+            json.dump(history, file, indent=4)
+            file.flush()
+            os.fsync(file.fileno())
 
-    with TEMP_ERROR_HISTORY_FILE.open("w", encoding="utf-8") as file:
-        json.dump(history, file, indent=4)
-        file.flush()
-        os.fsync(file.fileno())
+        os.replace(TEMP_ERROR_HISTORY_FILE, ERROR_HISTORY_FILE)
 
-    os.replace(TEMP_ERROR_HISTORY_FILE, ERROR_HISTORY_FILE)
+    except OSError:
+        try:
+            if TEMP_ERROR_HISTORY_FILE.exists():
+                TEMP_ERROR_HISTORY_FILE.unlink()
+        except OSError:
+            pass
 
 def get_quarantine_count():
     if not QUARANTINE_FILE.exists():

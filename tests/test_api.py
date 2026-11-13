@@ -277,5 +277,45 @@ class TestAPI(unittest.TestCase):
             )
             self.assertFalse(temp_file.exists())
 
+    @patch("src.api.TEMP_ERROR_HISTORY_FILE")
+    @patch("src.api.ERROR_HISTORY_FILE")
+    def test_save_error_history_handles_write_failure(
+        self, mock_history_file, mock_temp_file
+    ):
+        mock_history_file.exists.return_value = False
+        mock_temp_file.open.side_effect = OSError(
+            "Unable to write temporary file"
+        )
+
+        save_error_history(8.0)
+
+        mock_temp_file.open.assert_called_once_with(
+            "w", encoding="utf-8"
+        )
+
+    @patch("src.api.os.replace")
+    def test_save_error_history_handles_replace_failure(self, mock_replace):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+
+        with TemporaryDirectory() as directory:
+            history_file = Path(directory) / "error_history.json"
+            temp_file = history_file.with_suffix(".tmp")
+
+            with (
+                patch("src.api.ERROR_HISTORY_FILE", history_file),
+                patch("src.api.TEMP_ERROR_HISTORY_FILE", temp_file),
+            ):
+                mock_replace.side_effect = OSError(
+                    "Unable to replace history file"
+                )
+
+                save_error_history(8.0)
+
+                mock_replace.assert_called_once_with(
+                    temp_file, history_file
+                )
+                self.assertFalse(temp_file.exists())
+   
 if __name__ == "__main__":
     unittest.main()
