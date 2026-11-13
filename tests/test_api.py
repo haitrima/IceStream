@@ -277,6 +277,35 @@ class TestAPI(unittest.TestCase):
             )
             self.assertFalse(temp_file.exists())
 
+    def test_save_error_history_handles_non_list_json(self):
+        import json
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+
+        with TemporaryDirectory() as directory:
+            history_file = Path(directory) / "error_history.json"
+            temp_file = history_file.with_suffix(".tmp")
+
+            original_content = {"unexpected": "object"}
+            history_file.write_text(
+                json.dumps(original_content),
+                encoding="utf-8",
+            )
+
+            with (
+                patch("src.api.ERROR_HISTORY_FILE", history_file),
+                patch("src.api.TEMP_ERROR_HISTORY_FILE", temp_file),
+            ):
+                save_error_history(8.0)
+
+            saved_content = json.loads(
+                history_file.read_text(encoding="utf-8")
+            )
+
+            self.assertEqual(saved_content, original_content)
+            self.assertFalse(temp_file.exists())
+
     @patch("src.api.TEMP_ERROR_HISTORY_FILE")
     @patch("src.api.ERROR_HISTORY_FILE")
     def test_save_error_history_handles_write_failure(
