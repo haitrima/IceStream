@@ -359,6 +359,36 @@ class TestAPI(unittest.TestCase):
         mock_history_file.parent.mkdir.assert_called_once_with(
             parents=True, exist_ok=True
         )
+
+    @patch("src.api.os.replace")
+    def test_save_error_history_handles_cleanup_failure(
+        self, mock_replace
+    ):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+
+        with TemporaryDirectory() as directory:
+            history_file = Path(directory) / "error_history.json"
+            temp_file = history_file.with_suffix(".tmp")
+
+            with (
+                patch("src.api.ERROR_HISTORY_FILE", history_file),
+                patch("src.api.TEMP_ERROR_HISTORY_FILE", temp_file),
+            ):
+                mock_replace.side_effect = OSError(
+                    "Unable to replace history file"
+                )
+
+                with patch.object(
+                    Path, "unlink", side_effect=OSError(
+                        "Unable to remove temporary file"
+                    )
+                ):
+                    save_error_history(8.0)
+
+                mock_replace.assert_called_once_with(
+                    temp_file, history_file
+                )
    
 if __name__ == "__main__":
     unittest.main()
