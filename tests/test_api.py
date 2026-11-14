@@ -251,6 +251,34 @@ class TestAPI(unittest.TestCase):
             self.assertIn("timestamp", saved_history[1])
             self.assertFalse(temp_file.exists())
 
+    def test_save_error_history_handles_read_failure(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+
+        with TemporaryDirectory() as directory:
+            history_file = Path(directory) / "error_history.json"
+            temp_file = history_file.with_suffix(".tmp")
+
+            history_file.write_text("[]", encoding="utf-8")
+
+            with (
+                patch("src.api.ERROR_HISTORY_FILE", history_file),
+                patch("src.api.TEMP_ERROR_HISTORY_FILE", temp_file),
+                patch.object(
+                    Path,
+                    "open",
+                    side_effect=OSError("Unable to read history file"),
+                ),
+            ):
+                save_error_history(8.0)
+
+            self.assertEqual(
+                history_file.read_text(encoding="utf-8"),
+                "[]",
+            )
+            self.assertFalse(temp_file.exists())
+
     def test_save_error_history_handles_invalid_json(self):
         from pathlib import Path
         from tempfile import TemporaryDirectory
