@@ -345,6 +345,20 @@ class TestAPI(unittest.TestCase):
                     temp_file, history_file
                 )
                 self.assertFalse(temp_file.exists())
+
+    @patch("src.api.ERROR_HISTORY_FILE")
+    def test_save_error_history_handles_directory_creation_failure(
+        self, mock_history_file
+    ):
+        mock_history_file.parent.mkdir.side_effect = OSError(
+            "Unable to create directory"
+        )
+
+        save_error_history(8.0)
+
+        mock_history_file.parent.mkdir.assert_called_once_with(
+            parents=True, exist_ok=True
+        )
    
 if __name__ == "__main__":
     unittest.main()
