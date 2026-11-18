@@ -37,6 +37,8 @@ function App() {
   { time: "10:04", errorRate: 4 },
 ]);
   const [apiError, setApiError] = useState("");
+  const [quarantineRecords, setQuarantineRecords] = useState([]);
+  const [quarantineError, setQuarantineError] = useState("");
   const transactionChartData = [
   {
     name: "Transactions",
@@ -73,7 +75,27 @@ function App() {
       }
     };
 
+    const fetchQuarantine = async () => {
+  try {
+    const response = await fetch("/api/quarantine");
+
+    if (!response.ok) {
+      throw new Error("Could not fetch quarantine records");
+    }
+
+    const data = await response.json();
+    console.log("Quarantine API response:", data);
+
+    setQuarantineRecords(data.records ?? []);
+    setQuarantineError("");
+  } catch (error) {
+    setQuarantineError("Unable to load quarantine records.");
+    console.error("Quarantine fetch failed:", error);
+  }
+};
+
     fetchMetrics();
+    fetchQuarantine();
     const intervalId = setInterval(fetchMetrics, 5000);
 
     return () => clearInterval(intervalId);
@@ -120,6 +142,8 @@ function App() {
           </div>
         </header>
 
+        {activePage === "Overview" && (
+          <>
         <section className="metrics-grid">
         <article className="metric-card">
   <p>Pipeline Status</p>
@@ -319,26 +343,66 @@ function App() {
             </div>
           </article>
         </section>
+      </>
+    )}
 
-        <section className="panel table-panel">
-          <div className="panel-heading">
-            <div>
-              <h2>{activePage} Activity</h2>
-              <p className="muted">
-                Records will appear after backend integration
-              </p>
-            </div>
-          </div>
+       <section className="panel table-panel">
+  <div className="panel-heading">
+    <div>
+      <h2>
+        {activePage === "Quarantine"
+          ? "Quarantined Transactions"
+          : `${activePage} Activity`}
+      </h2>
+      <p className="muted">
+        {activePage === "Quarantine"
+          ? `${quarantineRecords.length} records loaded from the backend`
+          : "Live IceStream monitoring"}
+      </p>
+    </div>
+  </div>
 
-          <div className="empty-state">
-            <span className="empty-icon">◈</span>
-            <h3>Waiting for data</h3>
-            <p>
-              The dashboard interface is ready. Next, we will connect
-              the Python transaction generator and data-quality checks.
-            </p>
-          </div>
-        </section>
+  {activePage === "Quarantine" ? (
+    quarantineError ? (
+      <p className="metric-note">{quarantineError}</p>
+    ) : quarantineRecords.length === 0 ? (
+      <div className="empty-state">
+        <h3>No quarantine records found</h3>
+        <p>Records will appear here when the backend quarantines invalid transactions.</p>
+      </div>
+    ) : (
+      <div className="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Product</th>
+              <th>Sales Amount</th>
+              <th>Tax Amount</th>
+              <th>Validation Errors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {quarantineRecords.map((item, index) => (
+              <tr key={`${item.record?.order_id ?? "record"}-${index}`}>
+                <td>{item.record?.order_id ?? "—"}</td>
+                <td>{item.record?.product ?? "—"}</td>
+                <td>{item.record?.sales_amount ?? "—"}</td>
+                <td>{item.record?.tax_amount ?? "—"}</td>
+                <td>{(item.errors ?? []).join(", ") || "None"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  ) : (
+    <div className="empty-state">
+      <h3>{activePage} view</h3>
+      <p>Select Quarantine to inspect actual quarantined transaction records.</p>
+    </div>
+  )}
+</section>
 
         <footer>IceStream · Real-Time Lakehouse Observability</footer>
       </main>
