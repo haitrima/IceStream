@@ -2,8 +2,11 @@ import random
 from datetime import datetime, timezone
 
 
-def generate_transaction(order_id: int) -> dict:
-    """Generate one checkout transaction with occasional bad data."""
+def generate_transaction(
+    order_id: int,
+    inject_errors: bool = True,
+) -> dict:
+    """Generate one checkout transaction."""
 
     transaction = {
         "order_id": order_id,
@@ -15,22 +18,25 @@ def generate_transaction(order_id: int) -> dict:
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
-    # Deliberately inject data-quality errors.
-    error = random.random()
+    if inject_errors:
+        error = random.random()
 
-    if error < 0.05:
-        transaction["tax_amount"] = None
-    elif error < 0.07:
-        transaction["unexpected_field"] = "SCHEMA_CHANGE"
+        if error < 0.05:
+            transaction["tax_amount"] = None
+        elif error < 0.07:
+            transaction["unexpected_field"] = "SCHEMA_CHANGE"
 
     return transaction
 
 
-def generate_transactions(count: int = 100) -> list[dict]:
+def generate_transactions(
+    count: int = 100,
+    inject_errors: bool = True,
+) -> list[dict]:
     """Generate a batch of checkout transactions."""
 
     return [
-        generate_transaction(order_id)
+        generate_transaction(order_id, inject_errors)
         for order_id in range(1, count + 1)
     ]
 
