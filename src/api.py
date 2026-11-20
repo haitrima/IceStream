@@ -178,3 +178,31 @@ def get_error_history():
         "total_records": len(history),
         "history": history,
     }
+
+@app.get("/api/chat")
+def chat(question: str):
+    question_text = question.lower().strip()
+
+    if "quarantine" in question_text:
+        count = get_quarantine_count()
+        answer = f"There are currently {count} records in quarantine."
+
+    elif "pipeline" in question_text or "status" in question_text:
+        transactions = generate_transactions(100)
+        result = run_pipeline(transactions)
+        answer = f"Pipeline status: {result['status']}. Reason: {result['reason']}"
+
+    elif "error rate" in question_text or "error" in question_text:
+        transactions = generate_transactions(100)
+        result = run_pipeline(transactions)
+        error_rate = round(result["metrics"]["error_rate"] * 100, 2)
+        answer = f"The current error rate is {error_rate}%."
+
+    else:
+        answer = (
+            "Try asking: How many records are in quarantine? "
+            "What is the pipeline status? "
+            "What is the current error rate?"
+        )
+
+    return {"question": question, "answer": answer}

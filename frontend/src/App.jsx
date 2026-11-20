@@ -7,6 +7,37 @@ import "./App.css";
 
 function App() {
   const [activePage, setActivePage] = useState("Overview");
+  const [chatQuestion, setChatQuestion] = useState("");
+  const [chatAnswer, setChatAnswer] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const askChatQuestion = async (event) => {
+  event.preventDefault();
+
+  if (!chatQuestion.trim()) return;
+
+  setChatLoading(true);
+  setChatAnswer("");
+
+  try {
+    const response = await fetch(
+      `/api/chat?question=${encodeURIComponent(chatQuestion)}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Chat request failed");
+    }
+
+    const data = await response.json();
+    setChatAnswer(data.answer);
+  } catch (error) {
+    setChatAnswer(
+      "Unable to get an answer. Please check that the backend is running."
+    );
+    console.error("Chat request failed:", error);
+  } finally {
+    setChatLoading(false);
+  }
+};
 
   const pages = [
     "Overview",
@@ -345,6 +376,68 @@ function App() {
         </section>
       </>
     )}
+
+<section className="panel chat-panel">
+  <div className="panel-heading">
+    <div>
+      <h2>Live Q&A Chat</h2>
+      <p className="muted">
+        Ask questions about IceStream monitoring
+      </p>
+    </div>
+    <span className="tag">API Connected</span>
+  </div>
+
+  <div className="chat-suggestions">
+    <button
+      type="button"
+      onClick={() => setChatQuestion("What is the current error rate?")}
+    >
+      Error Rate
+    </button>
+
+    <button
+      type="button"
+      onClick={() => setChatQuestion("What is the pipeline status?")}
+    >
+      Pipeline Status
+    </button>
+
+    <button
+      type="button"
+      onClick={() => setChatQuestion("How many records are in quarantine?")}
+    >
+      Quarantine Count
+    </button>
+  </div>
+
+  <form onSubmit={askChatQuestion} className="chat-form">
+    <input
+      type="text"
+      value={chatQuestion}
+      onChange={(event) => setChatQuestion(event.target.value)}
+      placeholder="Ask: What is the current error rate?"
+      aria-label="Ask an IceStream question"
+    />
+
+    <button type="submit" disabled={chatLoading}>
+      {chatLoading ? "Thinking..." : "Ask"}
+    </button>
+  </form>
+
+  <div className="chat-answer" aria-live="polite">
+    {chatAnswer ? (
+      <>
+        <strong>Answer</strong>
+        <p>{chatAnswer}</p>
+      </>
+    ) : (
+      <p className="muted">
+        Try asking about quarantine records, pipeline status, or error rate.
+      </p>
+    )}
+  </div>
+</section>
 
        <section className="panel table-panel">
   <div className="panel-heading">
